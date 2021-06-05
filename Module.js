@@ -1,16 +1,16 @@
-class Soundnode
+class Module
 {
-  constructor(id, name, side,  x, y, radius)
+  constructor(id, side, x, y, radius)
   {
     this.id = id;
-    this.side = side;
+    this.side = side; // 'A' or 'B'
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.isFading = false;
 
-    this.sound =  new Howl({
-    src: ['assets/sound/' + name + "_story.mp3"],
+    this.story =  new Howl({
+    src: ['assets/sound/' + id + side + "_story.mp3"],
     autoplay: false,
     loop: true,
     volume: 0.0,
@@ -19,7 +19,17 @@ class Soundnode
     }
     });
 
-    this.image = loadImage('assets/images/' + name + ".png");
+    this.loop = new Howl({
+      src: ['assets/sound/' + id + side + "_loop.wav"],
+      autoplay: false,
+      loop: true,
+      volume: 0.0,
+      onload: function() {
+        loadedSound();
+      }
+      });
+
+    this.image = loadImage('assets/images/' + id + side + ".png");
   }
 
   checkForClick()
@@ -32,6 +42,8 @@ class Soundnode
     {
         this.activate();
         return id;
+
+        console.log("CLICKED", this.id, this.side);
     }
 
     return -1;
@@ -39,21 +51,27 @@ class Soundnode
 
   activate()
   {
-    this.sound.fade(0, 1, 500);
+    this.story.fade(0, 1, 500);
     
-    if(!this.sound.playing())
-        this.sound.play();
+    if(!this.story.playing())
+        this.story.play();
   }
 
   draw()
   {
     imageMode(CENTER);
 
-    let blend = this.sound.playing() ? this.sound.volume() : 0;
+    let blend = this.story.playing() ? this.story.volume() : 0;
     push();
     tint(255, blend * 180 + 75);
     image(this.image, this.x * width, this.y * height, this.radius * width, this.radius* height);
     noTint();
     pop();
   }
+
+  update()
+  {
+
+  }
+
 }

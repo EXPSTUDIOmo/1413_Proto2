@@ -2,6 +2,9 @@ class Dualmodule
 {
   constructor(ID, viewPosition, fadeIn, fadeOut, triggerPoint, xrfade1, xrfade2, startSide)
   {
+    //id, side, x, y, radius
+    this.left = new Module(ID, "A", -0.25, 0, 0.5);
+
     this.ID = ID;
     this.isStarted = false;
     this.isEndingA = false;

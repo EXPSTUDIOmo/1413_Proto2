@@ -1,43 +1,14 @@
 /*
-  Prototype of 14:13 scrollytelling app.
+  Prototype V2 of 14:13 scrollytelling app.
   Maurice Oeser 2021
 */
-
 
 /*
   Global Parameters
 */
 
-// Elements
-let canvas;
-let startButton; 
-let muteButton;
-
-
-// Flags
-let isMobile = true;
-let readyToStart = false;
-let isRunning = false;
-let isScrollingAllowed = false;
-let startScreenReady = false;
-let drawScrollHint = false;
-
-// Params
-
-// State Enum
-const STATES = Object.freeze({"startscreen":0, "preintro":1, "introtrans":2, "intro":3, "transition":4, "story":5});
-let currentState = STATES.startscreen;
-let currentChapter = 0;
-
-// Story position
-let viewPosition = 0;
-
-let currentSide = "left";
-
 let startButtonHeight = 0.7;
 
-let transitionStart = 2.0;
-let transitionEnd = 2.4;
 /*
   Soundfiles
 */
@@ -45,31 +16,9 @@ let transitionEnd = 2.4;
 let numSoundfiles = 4;
 let numSoundfilesLoaded = 0;
 
-// Musics & Effects
-let suspense_medium_verfolgte1;
-let suspense_medium_verfolgte2
-let suspense_medium_verfolger;
-let neutral_verfolgte;
-let grundrauschen;
 
-// Story Modules
-let moduleIntro;
-let module_1;
-let module_2;
 
-// Images
-let startImage;
-let startImage_copy;
-let bgImage1_1;
-let bgImage1_2;
-let bg1_1_offset = 0;
-let bg1_2_offset = 1;
-let bgImage2_1;
-let bgImage2_2;
-let nadel;
-let scrollHint;
 
-let font;
 /*
   -----------------------------------------------------------
   -----------------------------------------------------------
@@ -92,8 +41,6 @@ function setup() {
 
  loadStartScreen();
  setupStartButton();
-
- loadMusic();
  loadModules();
 
  textFont(font);
@@ -210,28 +157,18 @@ function muteSound()
 
 }
 
-function loadMusic()
-{
-  // Intro
-  suspense_medium_verfolgte1 = new Musicmodule("1A_music.mp3", -1, 0, 0.2, 0.9, 0.7);
-}
-
-
-
 function loadModules()
 {
   moduleIntro = new Intro("0_Intro");
 
-  //soundFileName, imageName, positionY, positionX, fadeIn, fadeOut, storyTrigger
+  //ID, viewPosition, fadeIn, fadeOut, triggerPoint, xrfade1, xrfade2, startSide
   module_1 = new Dualmodule(1 , 1.0, 0.5, 0.6, 1.0, 4, 4, 0); // Kneipe/Wohnzimmer
+  module_2 = new Dualmodule(2, 2.0, 0.5, 0.6, 2.0, 4, 4, 1);
 
-
-  //MODULE 2;
-  var m2_nodeList = [];
-  m2_nodeList.push(new Soundnode(0, "2A", "left",  -0.3, -0.2, 0.3));
-  m2_nodeList.push(new Soundnode(1, "2B", "right", 0.3, -0.2, 0.3));
-
-  module_2 = new Combomodule(1.5, "1A_music.mp3", "1B_music.mp3", m2_nodeList);
+  ////MODULE 2;
+  //var m2_nodeList = [];
+  //m2_nodeList.push(new Soundnode(0, "2A", "left",  -0.3, -0.2, 0.3));
+  //m2_nodeList.push(new Soundnode(1, "2B", "right", 0.3, -0.2, 0.3));
   grundrauschen = new Grundrauschen();
 }
 
@@ -293,7 +230,7 @@ function draw()
     drawBackground();
     moduleIntro.update();
 
-    if(moduleIntro.isEnding)
+    if(drawScrollHint)
     {
       imageMode(CENTER);
       image(scrollHint, 0, height * 0.4);
@@ -303,12 +240,12 @@ function draw()
     
   else if(currentState == STATES.transition)
   {
-    viewPosition += 0.02; // automatically scroll to next module
+    VIEWPOSITION += 0.02; // automatically scroll to next module
     drawBackground();
     moduleIntro.update();
-    module_1.update(viewPosition);
+    module_1.update(VIEWPOSITION);
 
-    if(viewPosition >= 0.99)
+    if(VIEWPOSITION >= 0.99)
       switchState(STATES.story);
   }
   
@@ -316,18 +253,14 @@ function draw()
   else if(currentState == STATES.story)
   {
     drawBackground();
-    module_1.update(viewPosition);
-    module_2.update(viewPosition);
+    module_1.update(VIEWPOSITION);
+    module_2.update(VIEWPOSITION);
 
-    grundrauschen.update(viewPosition);
+    grundrauschen.update(VIEWPOSITION);
 
     imageMode(CENTER);
     image(nadel, 0, 0, width, nadel.height * 0.35);
   }
-    
-
-  // always update music modules
-  suspense_medium_verfolgte1.update(viewPosition);
 }
 
 
@@ -369,7 +302,7 @@ function drawBackground()
 {
 
   // calculate scrolling BG
-  if(Math.floor(viewPosition) % 2 == 0)
+  if(Math.floor(VIEWPOSITION) % 2 == 0)
   {
     bg1_1_offset = 0;
     bg1_2_offset = 1;
@@ -381,7 +314,7 @@ function drawBackground()
     bg1_2_offset = 0;
   }
 
-  bgVertOffset = (viewPosition % 1);
+  bgVertOffset = (VIEWPOSITION % 1);
 
   imageMode(CENTER);
 
@@ -401,7 +334,7 @@ let scrollSpeed = 0.02;
 let inAutoScroll = false;
 function autoScroll(target)
 {
-  viewPosition += scrollSpeed;
+  VIEWPOSITION += scrollSpeed;
 }
 
 
@@ -415,7 +348,7 @@ function startIntro()
   isRunning = true;
 
   module_1.rescaleImage();
-
+  module_2.rescaleImage();
 }
 
 
@@ -432,12 +365,7 @@ function switchState(newState)
 
   else if(currentState == STATES.transition)
   {
-    moduleIntro.story.stop();
-    moduleIntro.endLoop.fade(1,0,1000);
-    setTimeout(function() {
-      moduleIntro.story.stop();
-      moduleIntro.endLoop.stop();
-    }, 2000); 
+    moduleIntro.fadeOut();
   }
 
   else if(currentState == STATES.story)
@@ -464,7 +392,7 @@ if(mouseY > height * 0.33)
 
   switch(currentChapter) {
     case 1 : module_1.switchSide(newSide);
-
+    case 2 : module_2.switchSide(newSide);
   }
 }
 
@@ -537,18 +465,18 @@ function  changeViewPosition(deltaMovement)
     if(isScrollingAllowed)
     {
 
-      viewPosition += (deltaMovement / height);; 
+      VIEWPOSITION += (deltaMovement / height);; 
 
-      if(currentState == STATES.story && viewPosition < 1 )
-          viewPosition = 1;
+      if(currentState == STATES.story && VIEWPOSITION < 1 )
+          VIEWPOSITION = 1;
 
 
-      if(viewPosition > 6)
-        viewPosition = 6;
+      if(VIEWPOSITION > 6)
+        VIEWPOSITION = 6;
     }
   }
 
-  console.log(viewPosition);
+  //console.log(viewPosition);
 }
 
 

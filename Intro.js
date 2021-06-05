@@ -11,7 +11,9 @@ class Intro
                         38.4, 38.479221, 38.558442, 38.637662, 38.716883, 38.796104, 38.875325, 38.954545, 39.033766, 39.112987, 39.192208, 39.271429, 39.350649, 39.43, 39.509091, 39.588312, 39.667532, 39.746753, 39.825974, 39.905195, 39.984416, 40.063636, 40.142857, 40.222078, 40.301299, 40.380519, 40.45974, 40.538961, 40.618182, 40.697403, 40.776623, 40.855844, 40.935065, 41.014286, 41.093506, 41.172727, 41.251948, 41.331169, 41.41039, 41.48961, 41.568831, 41.648052, 41.727273, 41.806494, 41.885714, 41.964935, 42.044156, 42.123377, 42.202597, 42.281818, 42.361039, 42.44026, 42.519481, 42.598701, 42.677922, 42.757143, 42.836364, 42.915584, 42.994805, 43.074026, 43.153247, 43.232468, 43.311688, 43.390909, 43.47013, 43.549351, 43.628571, 43.707792, 43.787013, 43.866234, 43.945455, 44.024675, 44.103896, 44.183117, 44.262338, 44.341558, 44.420779, 44.5,
                         44.8, 44.872642, 44.945283, 45.017925, 45.090566, 45.163208, 45.235849, 45.308491, 45.381132, 45.453774, 45.526415, 45.6, 45.671698, 45.74434, 45.816981, 45.889623, 45.962264, 46.034906, 46.107547, 46.180189, 46.25283, 46.325472, 46.398113, 46.470755, 46.543396, 46.616038, 46.688679, 46.761321, 46.833962, 46.906604, 46.979245, 47.051887, 47.124528, 47.19717, 47.27, 47.342453, 47.415094, 47.487736, 47.560377, 47.633019, 47.70566, 47.778302, 47.850943, 47.923585, 47.996226, 48.068868, 48.141509, 48.214151, 48.286792, 48.359434, 48.432075, 48.504717, 48.577358, 48.65, 
                         49.2, 49.62, 50.01, 50.45, 50.7];
-    this.sfOffset = 13.25;
+
+
+    this.sfOffset = 13.25; // length before text-sound-file starts, depends on how long musicIntro is
     this.index = 0;
     this.charIndex = 0;
     this.textLines = [[""]];
@@ -21,6 +23,8 @@ class Intro
     this.storyDuration = 0;
     this.isEnding = false;
     this.isStarted = false;
+
+    this.fadeOutTime = 800;
 
     // main story soundfile to play once
     this.story = new Howl({
@@ -36,6 +40,14 @@ class Intro
       src: ['assets/sound/' + soundFileName +'_loop.wav'],
       loop : true,
       volume : 0,
+      autoplay : false,
+      onload: function() { loadedSound();}
+    });
+
+    this.music = new Howl({
+      src: ['assets/sound/0_intro_music.mp3'],
+      loop : true,
+      volume : 0.5,
       autoplay : false,
       onload: function() { loadedSound();}
     });
@@ -55,6 +67,19 @@ class Intro
     //console.log(this.endLoop.duration());
   }
 
+  stopModule()
+  {
+    this.story.stop();
+    this.endLoop.stop();
+    this.music.stop();
+  }
+
+  fadeOut()
+  {
+    this.endLoop.fade(1,0, this.fadeOutTime);
+    this.music.fade(0.5, 0, this.fadeOutTime);
+    setTimeout(this.stopModule.bind(this), this.fadeOutTime + 50);
+  }
 
   update()
   {
@@ -64,6 +89,8 @@ class Intro
       this.endLoop.play()
       this.endLoop.fade(0, 1, 2000);
       this.isEnding = true;
+
+      setTimeout(function() { drawScrollHint = true;}, 1000);
     }
 
     // scroll away startScreen
@@ -83,13 +110,11 @@ class Intro
       this.animateText();
     }
     
-    if(this.story.seek() > this.sfOffset - 0.1)
+    if(this.story.seek() > this.sfOffset)
     {
-      if(!suspense_medium_verfolgte1.sound.playing())
-        suspense_medium_verfolgte1.sound.play();
+      if(!this.music.playing())
+        this.music.play();
     }
-
-    
   }
 
   animateText()
@@ -135,7 +160,7 @@ class Intro
     for(var i = 0; i < this.textLines.length; ++i)
     {
       textAlign(LEFT);
-      text(this.textLines[i], - (width * 0.4), (i+1) * (textAscent() * 1.5) - height * 0.4 - (height * viewPosition), width * 0.8, height * 0.8);
+      text(this.textLines[i], - (width * 0.4), (i+1) * (textAscent() * 1.5) - height * 0.4 - (height * VIEWPOSITION), width * 0.8, height * 0.8);
     } 
 
 

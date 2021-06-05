@@ -18,8 +18,8 @@ class Grundrauschen
     {
       start: 1.1,
       full1: 1.5,
-      full2: 2.6,
-      end: 3.2
+      full2: 1.6,
+      end: 1.9
     }
 
     this.zone2 = 

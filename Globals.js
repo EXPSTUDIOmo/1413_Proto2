@@ -1,8 +1,46 @@
-var nodeInfo = 
-{
-    name : "",
-    side : left,
-    x : 0,
-    y : 0,
-    radius : 50
-}
+// HTML-Elements
+let canvas;
+let startButton; 
+let muteButton;
+
+// Flags
+let isMobile = true;
+let readyToStart = false;
+let isRunning = false;
+let isScrollingAllowed = false;
+let startScreenReady = false;
+let drawScrollHint = false;
+
+// State Enum
+const STATES = Object.freeze({"startscreen":0, "preintro":1, "introtrans":2, "intro":3, "transition":4, "story":5});
+let currentState = STATES.startscreen;
+let currentChapter = 0;
+
+// Story position
+let VIEWPOSITION = 0;
+let currentSide = "left";
+
+
+// P5 Elements
+let font;
+
+// Musics & Effects
+let grundrauschen;
+
+// Story Modules
+let moduleIntro;
+let module_1;
+let module_2;
+
+// Images
+let startImage;
+let startImage_copy;
+
+let bgImage1_1;
+let bgImage1_2;
+
+let bg1_1_offset = 0;
+let bg1_2_offset = 1;
+
+let nadel;
+let scrollHint;
