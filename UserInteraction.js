@@ -59,3 +59,14 @@ function touchMoved(event)
 
   return false;
 }
+
+
+function touchEnded()
+{
+  if(touches.length < 1)
+  {
+    isTouched = false;
+  }
+
+  return false;
+}

@@ -1,12 +1,11 @@
 class Dualmodule
 {
-  constructor(ID, positionY, triggerPoint, fadeIn, fadeOut, xrfade1, xrfade2, startSide)
+  constructor(ID, positionY, triggerPoint, fadeIn, fadeOut, xrfade1, xrfade2, startSide, music_A, music_B)
   {
     this.ID = ID;
+    this.left = new Module(ID, "A", -0.25, 0, 0.5, xrfade1, positionY, music_A);
+    this.right = new Module(ID, "B", 0.25, 0, 0.5, xrfade2, positionY, music_B);
 
-                          //id, side, x, y, radius
-    this.left = new Module(ID, "A", -0.25, 0, 0.5, xrfade1, positionY);
-    this.right = new Module(ID, "B", 0.25, 0, 0.5, xrfade2, positionY);
 
     if(startSide == 'A')
     {
@@ -44,12 +43,9 @@ class Dualmodule
     {
       if(this.left.checkForClick())
       {
-        if(this.side != 'A')
+        if(this.side != 'A' || !this.isStarted)
         {
-          this.side = 'A';
-
-          this.left.start(true);
-          this.right.pause();
+          this.goToSide('A');
         }
       }
     }
@@ -59,114 +55,80 @@ class Dualmodule
     {
       if(this.right.checkForClick())
       {
-        if(this.side != 'B')
+        if(this.side != 'B' || !this.isStarted)
         {
-          this.side = 'B';
-          this.left.pause();
-          this.right.start(true);
+          this.goToSide('B');
         }
       }
     }
       
   }
 
-  /*
-  switchSide(newSide)
+  goToSide(side)
   {
-    if(newSide != this.side)
+    this.side = side;
+
+    if(side == 'A')
     {
-      let xfadeTime = 500;
-
-    this.side = newSide;
-    this.isFadingA = true;
-    this.isFadingB = true;
-
-    if(newSide == 0)
-    {
-      this.volumeA = 1;
-      this.volumeB = 0;
-
-      if(!this.story.A.playing() && !this.isEndingA)
-        this.story.A.play();
-
-      this.story.A.fade(0, 1, xfadeTime);
-      this.story.A_end.fade(0, 1, xfadeTime);
-      this.story.A_music.fade(0, 1, xfadeTime);
-
-      this.story.B.fade(1, 0, xfadeTime);
-      this.story.B_end.fade(1, 0, xfadeTime);
-      this.story.B_music.fade(1, 0, xfadeTime);
+      this.side = 'A';
+      this.left.start(true);
+      this.right.pause();
     }
-
     else
     {
-      this.volumeA = 0;
-      this.volumeB = 1;
-
-      if(!this.story.B.playing() && !this.isEndingB)
-        this.story.B.play();
-
-      this.story.A.fade(1, 0, xfadeTime);
-      this.story.A_end.fade(1, 0, xfadeTime);
-      this.story.A_music.fade(1, 0, xfadeTime);
-
-      this.story.B.fade(0, 1, xfadeTime);
-      this.story.B_end.fade(0, 1, xfadeTime);
-      this.story.B_music.fade(0, 1, xfadeTime);
+      this.side = 'B';
+      this.left.pause();
+      this.right.start(true);
     }
-
-    setTimeout(this.stopFadeA.bind(this), xfadeTime + 50);
-    setTimeout(this.stopFadeB.bind(this), xfadeTime + 50);
-    }
-
   }
-  */
+
+  
 
   startModule()
   { 
-      if(this.side == 'A')
+      if(this.side == 'A' || this.side == 'none')
       {
         this.left.start(false);
       }
-
-      else
+      else if(this.side == 'B')
       {
         this.right.start(false);
       }
 
-      //this.story.A_music.play();
-      //this.story.B_music.play();
-
       this.isStarted = true;
   }
 
-  
+  startMusic()
+  {
+    this.left.music.sound.play();
+    this.right.music.sound.play();
+  }
+
   update()
   {
-    if(VIEWPOSITION >= this.positionY - 1 && VIEWPOSITION <= this.positionY +1)
+    if(VIEWPOSITION >= this.positionY - 2 && VIEWPOSITION <= this.positionY + 2)
     {
-      this.isActive = true;
-
-      this.left.update();
-      this.right.update();
-
       if(!this.isStarted && VIEWPOSITION >= this.triggerPoint)
       {
         this.isStarted = true;
         this.startModule();
       }
-      
+
+      this.isActive = true;
       this.setScrollGain();
 
+      this.left.update();
+      this.right.update();
     }
 
     else
     {
       this.isActive = false;
-
+      this.isStarted = false;
       this.left.deactivate();
       this.right.deactivate();
     }
+
   }
   
   setScrollGain()

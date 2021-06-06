@@ -12,6 +12,7 @@ class Musicmodule
     }
     });
 
+    this.volume = 0.0;
     this.volumeScale = volumeScale;
 
     this.start = start;
@@ -20,23 +21,24 @@ class Musicmodule
     this.end = end;
   }
 
-
-  update(position)
+  update(sideGain)
   {
-    if(position > this.start && position < this.end)
+    if(VIEWPOSITION > this.start && VIEWPOSITION < this.end)
     {
-      if(position < this.full1)
-        this.sound.volume(mapToRange(position, this.start, this.full1, 0.0, this.volumeScale))
-      else if (position < this.full2)
-        this.sound.volume(this.volumeScale);
+      if(VIEWPOSITION < this.full1)
+        this.volume = mapToRange(VIEWPOSITION, this.start, this.full1, 0.0, this.volumeScale);
+      else if (VIEWPOSITION < this.full2)
+        this.volume = this.volumeScale;
       else 
-        this.sound.volume(mapToRange(position, this.full2, this.end, this.volumeScale, 0.0));
+        this.volume = mapToRange(VIEWPOSITION, this.full2, this.end, this.volumeScale, 0.0);
     }
 
     else
     {
-      this.sound.volume(0.0);
+      this.volume = 0;
     }
-  }
 
+    let newVolume = this.volume * sideGain;
+    this.sound.volume(newVolume);
+  }
 }

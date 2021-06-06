@@ -32,6 +32,7 @@ let grundrauschen;
 let moduleIntro; // intro is its own category / logic 
 
 let modules = [];
+let musics = [];
 
 // Images
 let startImage;
@@ -39,7 +40,7 @@ let startImage_copy;
 
 let bgImage1_1;
 let bgImage1_2;
-
+let bgImage1_fade;
 let bg1_1_offset = 0;
 let bg1_2_offset = 1;
 

@@ -1,6 +1,6 @@
 class Module
 {
-  constructor(id, side, x, y, radius, crossFadePoint, parentPos)
+  constructor(id, side, x, y, radius, crossFadePoint, parentPos, musicModule)
   {
     this.id = id;
     this.side = side; // 'A' or 'B'
@@ -8,7 +8,8 @@ class Module
     this.y = y;
     this.crossFadePoint = crossFadePoint;
     this.radius = radius;
-
+    this.isStarted = false;
+    this.isFading = false;
     this.storyEnding = false;
     this.gain = 1;
     this.parentGain = 0;
@@ -16,6 +17,8 @@ class Module
     
     this.fadeInObj;
     this.fadeOutObj;
+
+    this.music = musicModule;
 
     this.story =  new Howl({
     src: ['assets/sound/' + id + side + "_story.mp3"],
@@ -39,23 +42,32 @@ class Module
 
     this.imageSRC = loadImage('assets/images/' + id + side + ".png", this.rescaleImage.bind(this));
     this.image;
+
+  
   }
 
+  
+
+  stopFade()
+  {
+    this.isFading = false;
+  }
 
   fadeIn()
   {
     this.gain += 1 / frameRate();
-
+    
     if(this.gain >= 1)
       this.gain = 1.0;
     else
       this.fadeInObj = setTimeout(this.fadeIn.bind(this), 1000 / frameRate());
+
   }
 
   fadeOut()
   {
     this.gain -= 1 / frameRate();
-
+    
     if(this.gain <= 0)
     {
       this.gain = 0.0;
@@ -64,6 +76,7 @@ class Module
       
     else
       this.fadeOutObj = setTimeout(this.fadeOut.bind(this), 1000 / frameRate());
+
   }
 
   rescaleImage()
@@ -100,35 +113,45 @@ class Module
     }        
     else
       this.gain = 1;
+
+    this.isStarted = true;
+
+  
   }
 
   pause()
   {
     clearTimeout(this.fadeInObj);
     this.fadeOut();
+
+
   }
 
   stop()
   {
     this.story.stop();
     this.loop.stop();
+    this.storyEnding = false;
+
   }
 
   deactivate()
   {
-    this.fadeOut();
-    this.side = 'none';
-    setTimeout(this.stop.bind(this), 1100);
+    if(this.story.playing() || this.loop.playing())
+    {
+      this.stop();
+    }
   }
 
   setScrollGain(parentGain)
   {
     this.parentGain = parentGain;
+
   }
 
   getCurrentSound()
   {
-    if(this.storyEnding)
+    if(this.storyEnding && !this.isFading)
       return this.loop;
     else
       return this.story;
@@ -144,13 +167,42 @@ class Module
 
       if(!this.loop.playing())
       {
+        this.isFading = true;
         this.loop.play();
-        this.loop.fade(0, 1, 1000);
+        this.loop.fade(0, this.gain * this.parentGain, 1000);
+        setTimeout(this.stopFade.bind(this), 1010);
       } 
     }
-    this.story.fade(this.story.volume(), this.gain * this.parentGain, 1000 / frameRate());
-    this.loop.fade(this.story.volume(), this.gain * this.parentGain, 1000 / frameRate());
 
+    this.music.update(this.gain);
+
+    if(this.parentGain <= 0.0)
+    {
+      if(this.story.playing())
+        this.story.pause();
+      
+      if(this.loop.playing())
+        this.loop.pause();
+    }
+
+    else
+    {
+      if(!this.storyEnding && !this.story.playing() && this.isStarted)
+        this.story.play();
+
+      if(this.storyEnding && !this.loop.playing()) 
+        this.loop.play();
+
+      //this.story.fade(this.story.volume(), this.gain * this.parentGain, 1000 / frameRate());
+      this.story.volume(this.gain * this.parentGain);
+
+      if(!this.isFading)
+        this.loop.volume(this.gain * this.parentGain);
+        //this.loop.fade(this.story.volume(), this.gain * this.parentGain, 1000 / frameRate());
+
+    }
+
+    
     this.draw();
   }
 
@@ -164,11 +216,16 @@ class Module
     let posX = this.x * width;
     let posY = (this.parentPos - VIEWPOSITION) * height + (this.y * height);
 
+    
     push();
+    noStroke();
     tint(255, blend * 180 + 75);
-    image(this.image, posX, posY);
+    texture(this.image);
+    translate(posX, posY);
+    plane(this.image.width, this.image.height);
     noTint();
     pop();
+    
   }
 
 

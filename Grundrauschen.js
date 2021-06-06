@@ -24,11 +24,13 @@ class Grundrauschen
 
     this.zone2 = 
     {
-      start: 3.8,
-      full1: 4.5,
-      full2: 5.0,
-      end: 6.0
+      start: 2.8,
+      full1: 3.1,
+      full2: 3.5,
+      end: 3.7
     }
+
+ 
 
     this.zones = [this.zone1, this.zone2];
   }

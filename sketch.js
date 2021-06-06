@@ -45,6 +45,7 @@ function setup() {
  loadModules();
 
  textFont(font);
+ imageMode(CENTER);
 }
 
 /*
@@ -53,8 +54,8 @@ function setup() {
 
 function loadStartScreen()
 {
-  startImage = loadImage("assets/images/landing_page.jpg", resizeStartScreen);
   bgImage1_fade = loadImage("assets/images/Background_schwarz_fadein.jpg");
+  startImage = loadImage("assets/images/landing_page.jpg", resizeStartScreen);
   bgImage1_1 = loadImage("assets/images/Background_schwarz_v1.jpg");
   bgImage1_2 = loadImage("assets/images/Background_schwarz_v2.jpg");
   bgImage2_1 = loadImage("assets/images/Background_weiß_v1.jpg");
@@ -137,10 +138,8 @@ function muteSound()
     Howler.mute(true);
     isMuted = true;
 
-    if(currentSide == "left")
-      muteButton.attribute('src',"assets/images/mute_white.png" );
-    else 
-      muteButton.attribute('src',"assets/images/mute_black.png" );
+    muteButton.attribute('src',"assets/images/mute_white.png" );
+
     
   }
 
@@ -149,10 +148,7 @@ function muteSound()
     Howler.mute(false);
     isMuted = false;
 
-    if(currentSide == "left")
-        muteButton.attribute('src',"assets/images/unmute_white.png" );
-    else
-        muteButton.attribute('src',"assets/images/unmute_black.png" );
+    muteButton.attribute('src',"assets/images/unmute_white.png" );
   }
 
 }
@@ -192,7 +188,7 @@ function draw()
 {
   background(0);
   fill(255);
-
+  //console.log(VIEWPOSITION);
   // LANDING PAGE
   if(currentState == STATES.startscreen)
   {
@@ -220,7 +216,7 @@ function draw()
     if(drawScrollHint)
     {
       imageMode(CENTER);
-      image(scrollHint, 0, height * 0.4);
+      //image(scrollHint, 0, height * 0.4);
     }
   }
 
@@ -244,8 +240,8 @@ function draw()
 
     updateStoryModules();
 
-    imageMode(CENTER);
-    image(nadel, 0, 0, width, nadel.height * 0.35);
+    
+    //image(nadel, 0, 0, width, nadel.height * 0.35);
   }
 }
 
@@ -273,8 +269,14 @@ function drawStartScreen(offsetY)
 
   else
   {
-    imageMode(CENTER);
-    image(startImage_copy, 0 , - (height * offsetY));
+    push();
+    noStroke();
+    translate(0, - (height * offsetY));
+    texture(startImage_copy);
+    plane(startImage_copy.width, startImage_copy.height);
+    pop();
+
+    //image(startImage_copy, 0 , - (height * offsetY));
 
     // still loading audio files, progress bar
     if(!readyToStart)
@@ -293,7 +295,7 @@ function drawStartScreen(offsetY)
 
 function drawBackground()
 {
-
+ 
   // calculate scrolling BG
   if(Math.floor(VIEWPOSITION) % 2 == 0)
   {
@@ -309,14 +311,33 @@ function drawBackground()
 
   bgVertOffset = (VIEWPOSITION % 1);
 
-  imageMode(CENTER);
+  if(currentState == STATES.intro || currentState == STATES.transition) 
+  {
+    push();
+    noStroke();
+    translate(0, - (height * bgVertOffset) + (height * bg1_1_offset));
+    texture(bgImage1_fade);
+    plane(width, height);
+    pop();
 
-  if(currentState == STATES.intro || currentState == STATES.transition) // in intro & transition to story draw faded bg image
-    image(bgImage1_fade, 0, - (height * bgVertOffset) + (height * bg1_1_offset), width, height);
+  }
+  
   else
-    image(bgImage1_1, 0, - (height * bgVertOffset) + (height * bg1_1_offset), width, height);
-
-  image(bgImage1_2, 0, - (height * bgVertOffset) + (height * bg1_2_offset), width, height);
+  {
+    push();
+    noStroke();
+    translate(0, - (height * bgVertOffset) + (height * bg1_1_offset));
+    texture(bgImage1_1);
+    plane(width, height);
+    pop();
+  }
+   
+  push();
+  noStroke();
+  translate(0, - (height * bgVertOffset) + (height * bg1_2_offset));
+  texture(bgImage1_2);
+  plane(width, height);
+  pop();
   
 }
 
@@ -338,13 +359,14 @@ function startIntro()
 
   switchState(STATES.preintro);
 
+  // not doing loop because of parallelisation, loop could introduce offsets
+  modules[0].startMusic();
+  modules[1].startMusic();
+  modules[2].startMusic();
+
   isRunning = true;
+
 }
-
-
-
-
-
 
 function switchState(newState)
 {
@@ -364,24 +386,6 @@ function switchState(newState)
 
 
 
-
-
-
-
-
-
-
-
-
-function touchEnded()
-{
-  if(touches.length < 1)
-  {
-    isTouched = false;
-  }
-
-  return false;
-}
 
 
 
@@ -477,8 +481,8 @@ function mapToRange (number, inMin, inMax, outMin, outMax) {
 
 function keyPressed() {
   if (keyCode === LEFT_ARROW) {
-    module_1.story.A.seek(140);
-    module_1.story.B.seek(120);
+    modules[0].left.story.seek(140);
+    modules[0].right.story.seek(120);
   } else if (keyCode === DOWN_ARROW) {
     switchState(STATES.introTrans);
 
