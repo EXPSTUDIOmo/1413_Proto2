@@ -34,7 +34,7 @@ class Grundrauschen
   }
 
 
-  update(position)
+  update()
   {
     let isInZone = false;
 
@@ -42,17 +42,16 @@ class Grundrauschen
     {
         let zone = this.zones[i];
 
-        if(position > zone.start && position < zone.end)
+        if(VIEWPOSITION > zone.start && VIEWPOSITION < zone.end)
         {
           isInZone = true;
 
-          if(position < zone.full1)
-            this.sound.volume(mapToRange(position, zone.start, zone.full1, 0.0, 1.0))
-          else if (position < zone.full2)
+          if(VIEWPOSITION < zone.full1)
+            this.sound.volume(mapToRange(VIEWPOSITION, zone.start, zone.full1, 0.0, 1.0))
+          else if (VIEWPOSITION < zone.full2)
             this.sound.volume(1.0);
           else 
-            this.sound.volume(mapToRange(position, zone.full2, zone.end, 1.0, 0.0));
-
+            this.sound.volume(mapToRange(VIEWPOSITION, zone.full2, zone.end, 1.0, 0.0));
         }
     }
 

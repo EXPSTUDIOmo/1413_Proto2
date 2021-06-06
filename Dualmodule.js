@@ -1,152 +1,76 @@
 class Dualmodule
 {
-  constructor(ID, viewPosition, fadeIn, fadeOut, triggerPoint, xrfade1, xrfade2, startSide)
+  constructor(ID, positionY, triggerPoint, fadeIn, fadeOut, xrfade1, xrfade2, startSide)
   {
-    //id, side, x, y, radius
-    this.left = new Module(ID, "A", -0.25, 0, 0.5);
-
     this.ID = ID;
+
+                          //id, side, x, y, radius
+    this.left = new Module(ID, "A", -0.25, 0, 0.5, xrfade1, positionY);
+    this.right = new Module(ID, "B", 0.25, 0, 0.5, xrfade2, positionY);
+
+    if(startSide == 'A')
+    {
+      this.left.gain = 1.0;
+      this.right.gain = 0.0;
+    }
+
+    else
+    {
+      this.left.gain = 0.0;
+      this.right.gain = 1.0;
+    }
+
     this.isStarted = false;
-    this.isEndingA = false;
-    this.isEndingB = false;
-    this.isFadingA = false;
-    this.isFadingB = false;
-    this.positionY = viewPosition;
-    this.storyTrigger = triggerPoint;
+    this.isActive = false;
+
+    this.positionY = positionY;
+    this.triggerPoint = triggerPoint;
+
     this.fadeIn = fadeIn;
     this.fadeOut = fadeOut;
+
     this.inEndLoop = false;
-    this.globalVolume = 1;
-    this.xrfade1 = xrfade1;
-    this.xrfade2 = xrfade2;
-    this.volumeA = 1;
-    this.volumeB = 0;
+
+    this.gain = 1;
+
     this.startSide = startSide;
     this.side = startSide;
-    this.replayAbtn = createImg("assets/images/restartButton_white.png", "restart");
-    this.replayAbtn.hide();
-    this.replayAbtn.size(80, 80);
-    this.replayBbtn = createImg("assets/images/restartButton_white.png", "restart");
-    this.replayBbtn.hide();
-    this.replayBbtn.size(80, 80);
-    this.replayAbtn.mouseClicked(this.restartA.bind(this));
-    this.replayAbtn.touchEnded(this.restartA.bind(this));
-    this.replayAbtn.mousePressed(this.highlightReplayA.bind(this));
-    this.replayAbtn.touchStarted(this.highlightReplayA.bind(this));
-  
-    this.replayBbtn.mouseClicked(this.restartB.bind(this));
-    this.replayBbtn.touchEnded(this.restartB.bind(this));
-    this.replayBbtn.mousePressed(this.highlightReplayB.bind(this));
-    this.replayBbtn.touchStarted(this.highlightReplayB.bind(this));
+  }
 
-    this.replayAbtn.mouseOut(this.dehighlightBtns.bind(this));
-    this.replayBbtn.mouseOut(this.dehighlightBtns.bind(this));
-
-    this.image = 
+  checkForClick()
+  {
+    // Check on left 
+    if(mouseX <= width / 2)
     {
-      A_src : loadImage("assets/images/" + ID + "A.png"),
-      B_src : loadImage("assets/images/" + ID + "B.png"),
-      A : "",
-      B : ""
-    };
-  
-    this.story =
+      if(this.left.checkForClick())
+      {
+        if(this.side != 'A')
+        {
+          this.side = 'A';
+
+          this.left.start(true);
+          this.right.pause();
+        }
+      }
+    }
+
+    // Check on right 
+    else
     {
-      A : new Howl({
-        src: ['assets/sound/' + ID +'A_story.mp3'],
-        loop : false,
-        volume : 1,
-        autoplay : false, 
-        onload: function() { loadedSound(); }
-      }),
-
-      A_end : new Howl({
-        src: ['assets/sound/' + ID +'A_loop.wav'],
-        loop : true,
-        volume : 0,
-        autoplay : false,
-        onload: function() { loadedSound();}
-      }),
-
-      A_music : new Howl({
-        src: ['assets/sound/' + ID +'A_music.mp3'],
-        loop : true,
-        volume : 1,
-        autoplay : false,
-        onload: function() { loadedSound();}
-      }),
-
-      B : new Howl({
-        src: ['assets/sound/' + ID +'B_story.mp3'],
-        loop : false,
-        volume : 1,
-        autoplay : false, 
-        onload: function() { loadedSound(); }
-      }),
-
-      B_end : new Howl({
-        src: ['assets/sound/' + ID +'B_loop.wav'],
-        loop : true,
-        volume : 0,
-        autoplay : false, 
-        onload: function() { loadedSound(); },
-      }),
-
-      B_music : new Howl({
-        src: ['assets/sound/' + ID +'B_music.mp3'],
-        loop : true,
-        volume : 1,
-        autoplay : false,
-        onload: function() { loadedSound();}
-      }),
-     }
+      if(this.right.checkForClick())
+      {
+        if(this.side != 'B')
+        {
+          this.side = 'B';
+          this.left.pause();
+          this.right.start(true);
+        }
+      }
+    }
+      
   }
 
-  rescaleImage()
-  {
-    this.image.A = this.image.A_src.get();
-    this.image.A.resize(width * 0.5, 0);
-
-    this.image.B = this.image.B_src.get();
-    this.image.B.resize(width * 0.5, 0);
-  }
-
-  dehighlightBtns()
-  {
-    this.replayAbtn.attribute('src', "assets/images/restartButton_white.png");
-    this.replayBbtn.attribute('src', "assets/images/restartButton_white.png");
-  }
-
-  highlightReplayA()
-  {
-    this.replayAbtn.attribute('src', "assets/images/restartButton_highlight.png");
-  }
-
-  restartA()
-  {
-    this.story.A.stop();
-    this.story.A.play();
-    this.story.A.volume(1);
-    this.replayAbtn.attribute('src', "assets/images/restartButton_white.png");
-    this.isEndingA = false;
-    this.story.A_end.stop();
-  }
-
-  highlightReplayB()
-  {
-    this.replayBbtn.attribute('src', "assets/images/restartButton_highlight.png");
-    this.isEndingB = false;
-    this.story.B_end.stop();
-  }
-
-  restartB()
-  {
-    this.story.B.stop();
-    this.story.B.play();
-    this.story.B.volume(1);
-    this.replayBbtn.attribute('src', "assets/images/restartButton_white.png");
-  }
-
+  /*
   switchSide(newSide)
   {
     if(newSide != this.side)
@@ -196,169 +120,65 @@ class Dualmodule
     }
 
   }
-
+  */
 
   startModule()
   { 
-      if(this.side == 0)
+      if(this.side == 'A')
       {
-        this.story.A.play();
-        this.story.B_music.volume(0);
+        this.left.start(false);
       }
 
       else
       {
-        this.story.B.play();
-        this.story.A_music.volume(0);
+        this.right.start(false);
       }
 
-      this.story.A_music.play();
-      this.story.B_music.play();
+      //this.story.A_music.play();
+      //this.story.B_music.play();
 
       this.isStarted = true;
-      setTimeout(this.showReplayBtn.bind(this), 1000);
   }
 
-  showReplayBtn()
+  
+  update()
   {
-    this.replayAbtn.show();
-    this.replayBbtn.show();
-  }
-
-  update(position)
-  {
-
-    /*
-      SF START STOP
-    */
-
-    // if we reach fadein position and arent running yet, start story module
-    if(!this.isStarted && position >= this.storyTrigger)
+    if(VIEWPOSITION >= this.positionY - 1 && VIEWPOSITION <= this.positionY +1)
     {
-      this.startModule();
-      this.isStarted = true;
-    }
+      this.isActive = true;
 
-    // if we are close to end, crossfade to endloop
-    if(!this.isEndingA && this.isStarted && this.story.A.seek() >  this.story.A.duration() - this.xrfade1)
-    {
-      this.isEndingA = true;
-      this.story.A_end.play();
-      this.story.A_end.fade(0, 1, 1000);
-      this.isFadingA = true;
+      this.left.update();
+      this.right.update();
 
-      setTimeout(this.stopFadeA.bind(this), 1050);
-    }
-
-    // if we are close to end, crossfade to endloop
-    if(this.isStarted && !this.isEndingB && this.story.B.seek() >  this.story.B.duration() - this.xrfade1)
-    {
-      this.isEndingB = true;
-      this.story.B_end.play();
-      this.story.B_end.fade(0, 1, 1000);
-      this.isFadingB = true;
-
-      setTimeout(this.stopFadeB.bind(this), 1050);
-    }
-
-
-    /*
-      VOLUME UPDATES
-    */
-
-    // if we are outside the module, make sure its silent ( had some problems with dangling soundfiles)
-    if(position < this.positionY - this.fadeIn || position > this.positionY + this.fadeOut)
-    {
-      this.globalVolume = 0.0;
-      this.story.A_end.pause();
-      this.story.B_end.pause();
-
-      this.story.A_music.mute(true);
-      this.story.B_music.mute(true);
-    }
-
- 
-    else 
-    {
-      currentChapter = this.ID;
-      this.story.A_music.mute(false);
-      this.story.B_music.mute(false);
-
-         // BEFORE OUR POSITION
-      if(position <= this.positionY)
+      if(!this.isStarted && VIEWPOSITION >= this.triggerPoint)
       {
-        this.globalVolume = mapToRange(position, this.positionY - this.fadeIn, this.positionY, 0.0, 1.0);
+        this.isStarted = true;
+        this.startModule();
       }
+      
+      this.setScrollGain();
 
-      else
-      {
-        this.globalVolume = mapToRange(position, this.positionY, this.positionY + this.fadeOut, 1.0, 0.0);
-      }
+    }
 
-      if(this.isEndingA)
-        if(!this.story.A_end.playing())
-          this.story.A_end.play();
+    else
+    {
+      this.isActive = false;
 
-      if(this.isEndingB)
-        if(!this.story.B_end.playing())
-          this.story.B_end.play();
-
-      this.applyGlobalGain();
-      this.draw(position); 
+      this.left.deactivate();
+      this.right.deactivate();
     }
   }
   
-
-  stopFadeA()
+  setScrollGain()
   {
-    this.isFadingA = false;
-  }
+    if(VIEWPOSITION <= this.positionY)
+      this.gain = mapToRange(VIEWPOSITION, this.positionY - this.fadeIn, this.positionY, 0, 1);
 
-  stopFadeB()
-  {
-    this.isFadingB = false;
-  }
-
-  applyGlobalGain()
-  {
-
-    if(!this.isFadingA)
-    {
-      this.story.A.volume(this.volumeA * this.globalVolume);
-      this.story.A_music.volume(this.volumeA * this.globalVolume);
-
-      if(this.isEndingA)
-        this.story.A_end.volume(this.volumeA * this.globalVolume);
-    }
-
-    if(!this.isFadingB)
-    {
-      this.story.B.volume(this.volumeB * this.globalVolume);
-      this.story.B_music.volume(this.volumeB * this.globalVolume);
-
-      if(this.isEndingB)
-        this.story.B_end.volume(this.volumeB * this.globalVolume);
-    }
-  }
-
-  draw(position)
-  {
-    push();
-    imageMode(CENTER);
-    tint(255, this.globalVolume * (this.story.A.volume() * 180 + 75));
-    image(this.image.A, - width * 0.25, (this.positionY * height) - (height * position), width * 0.5, 0);
-    tint(255, this.globalVolume * (this.story.B.volume() * 180 + 75));
-    image(this.image.B, width * 0.25, (this.positionY * height) - (height * position), width * 0.5, 0);
-    noTint();
-    pop();
-
-
-    this.replayAbtn.style('opacity', this.story.A.volume());
-    this.replayAbtn.position( width * 0.25, (this.positionY * (height * 1.05) - (height * position)));
-
-
-    this.replayBbtn.style('opacity', this.story.B.volume());
-    this.replayBbtn.position( width * 0.75, (this.positionY * (height * 1.05) - (height * position)));
+    else
+      this.gain = mapToRange(VIEWPOSITION, this.positionY, this.positionY + this.fadeOut, 1, 0);
+    
+    this.left.parentGain = this.gain;
+    this.right.parentGain = this.gain;
   }
 }
 

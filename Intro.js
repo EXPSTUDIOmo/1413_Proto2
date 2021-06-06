@@ -76,8 +76,8 @@ class Intro
 
   fadeOut()
   {
-    this.endLoop.fade(1,0, this.fadeOutTime);
-    this.music.fade(0.5, 0, this.fadeOutTime);
+    this.endLoop.fade(this.endLoop.volume() , 0, this.fadeOutTime);
+    this.music.fade( this.music.volume() , 0, this.fadeOutTime);
     setTimeout(this.stopModule.bind(this), this.fadeOutTime + 50);
   }
 
@@ -87,7 +87,7 @@ class Intro
     if(this.story.seek() > 50.5 + this.sfOffset && !this.isEnding)
     {
       this.endLoop.play()
-      this.endLoop.fade(0, 1, 2000);
+      this.endLoop.fade(0, 1, 500);
       this.isEnding = true;
 
       setTimeout(function() { drawScrollHint = true;}, 1000);

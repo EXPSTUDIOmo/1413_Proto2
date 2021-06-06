@@ -14,7 +14,8 @@ let drawScrollHint = false;
 // State Enum
 const STATES = Object.freeze({"startscreen":0, "preintro":1, "introtrans":2, "intro":3, "transition":4, "story":5});
 let currentState = STATES.startscreen;
-let currentChapter = 0;
+
+let currentModule = 0;
 
 // Story position
 let VIEWPOSITION = 0;
@@ -28,9 +29,9 @@ let font;
 let grundrauschen;
 
 // Story Modules
-let moduleIntro;
-let module_1;
-let module_2;
+let moduleIntro; // intro is its own category / logic 
+
+let modules = [];
 
 // Images
 let startImage;
@@ -44,3 +45,19 @@ let bg1_2_offset = 1;
 
 let nadel;
 let scrollHint;
+
+
+
+// PARAMS
+let SIDE_FADE_TIME = 1000;
+
+
+// HELPER FUNCTIONS
+
+function getMouseRelative(axis)
+{
+    if(axis == 'x')
+        return (mouseX / width) - 0.5;
+    else
+        return (mouseY / height) - 0.5;
+}

@@ -39,6 +39,7 @@ function setup() {
   else
     canvas = createCanvas(windowWidth, windowHeight, WEBGL);
 
+ setupPageElements();
  loadStartScreen();
  setupStartButton();
  loadModules();
@@ -78,7 +79,6 @@ function resizeStartScreen()
       startImage.resize(0, height);
   }
    
-    module_1.rescaleImage();
     startScreenReady = true;
 }
 
@@ -157,20 +157,7 @@ function muteSound()
 
 }
 
-function loadModules()
-{
-  moduleIntro = new Intro("0_Intro");
 
-  //ID, viewPosition, fadeIn, fadeOut, triggerPoint, xrfade1, xrfade2, startSide
-  module_1 = new Dualmodule(1 , 1.0, 0.5, 0.6, 1.0, 4, 4, 0); // Kneipe/Wohnzimmer
-  module_2 = new Dualmodule(2, 2.0, 0.5, 0.6, 2.0, 4, 4, 1);
-
-  ////MODULE 2;
-  //var m2_nodeList = [];
-  //m2_nodeList.push(new Soundnode(0, "2A", "left",  -0.3, -0.2, 0.3));
-  //m2_nodeList.push(new Soundnode(1, "2B", "right", 0.3, -0.2, 0.3));
-  grundrauschen = new Grundrauschen();
-}
 
 
 
@@ -237,13 +224,13 @@ function draw()
     }
   }
 
-    
   else if(currentState == STATES.transition)
   {
     VIEWPOSITION += 0.02; // automatically scroll to next module
     drawBackground();
     moduleIntro.update();
-    module_1.update(VIEWPOSITION);
+
+    updateStoryModules();
 
     if(VIEWPOSITION >= 0.99)
       switchState(STATES.story);
@@ -253,10 +240,9 @@ function draw()
   else if(currentState == STATES.story)
   {
     drawBackground();
-    module_1.update(VIEWPOSITION);
-    module_2.update(VIEWPOSITION);
+    grundrauschen.update();
 
-    grundrauschen.update(VIEWPOSITION);
+    updateStoryModules();
 
     imageMode(CENTER);
     image(nadel, 0, 0, width, nadel.height * 0.35);
@@ -264,6 +250,13 @@ function draw()
 }
 
 
+function updateStoryModules()
+{
+  for(let module of modules)
+  {
+    module.update();
+  }
+}
 
 
 
@@ -346,9 +339,6 @@ function startIntro()
   switchState(STATES.preintro);
 
   isRunning = true;
-
-  module_1.rescaleImage();
-  module_2.rescaleImage();
 }
 
 
@@ -376,70 +366,11 @@ function switchState(newState)
 
 
 
-function mousePressed() {
-
-
-//Check for module switch
-
-if(mouseY > height * 0.33)
-{
-  let newSide = 0;
-
-  if(mouseX > width * 0.5)
-  {
-    newSide = 1;
-  }
-
-  switch(currentChapter) {
-    case 1 : module_1.switchSide(newSide);
-    case 2 : module_2.switchSide(newSide);
-  }
-}
-
-  // prevent default
-  return false;
-}
 
 
 
 
-/*
-  SCROLLING FUNCTIONALITY
-*/
 
-let lastTouchY = 0; // store last Y to calculate delta 
-let isTouched = false;
-
-// Scroll down on mousehweel or touchpad scroll
-function mouseWheel(event) 
-{
-
-  changeViewPosition(event.delta);
-
-  return false;
-}
-
-// scroll page with mobile touch input
-function touchMoved(event)
-{
-  if(touches)
-  {
-      if(touches.length > 0)
-  {
-      if(!isTouched)
-      {
-        lastTouchY = touches[0].y;
-        isTouched = true;
-      }
-
-      let deltaTouch = lastTouchY - touches[0].y;
-      changeViewPosition(deltaTouch);
-      lastTouchY = touches[0].y;
-    }
-  }
-
-  return false;
-}
 
 
 function touchEnded()
@@ -528,8 +459,6 @@ function resizeContent()
     startWidth = width * 0.25;
 
   startButton.position(width * 0.5 - (startWidth / 2), height * startButtonHeight - (startWidth / 2));
-
-  module_1.rescaleImage();
 }
 
 window.mobileCheck = function() {
