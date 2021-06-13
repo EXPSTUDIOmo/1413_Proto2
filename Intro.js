@@ -21,8 +21,11 @@ class Intro
     this.wordIndex = 0;
     this.charIndex = 0;
     this.storyDuration = 0;
-    this.isEnding = false;
+    this.storyEnding = false;
     this.isStarted = false;
+    this.headerText = "14:13";
+    this.subText = "Einleitung";
+
 
     this.fadeOutTime = 800;
 
@@ -62,6 +65,7 @@ class Intro
       this.storyDuration = this.story.duration();
       this.story.play();
       this.isStarted = true;
+      setCurrentModule(this, this.headerText, this.subText, true)
     }
 
     //console.log(this.endLoop.duration());
@@ -84,11 +88,11 @@ class Intro
   update()
   {
     // fade into end loop
-    if(this.story.seek() > 50.5 + this.sfOffset && !this.isEnding)
+    if(this.story.seek() > 50.5 + this.sfOffset && !this.storyEnding)
     {
       this.endLoop.play()
       this.endLoop.fade(0, 1, 500);
-      this.isEnding = true;
+      this.storyEnding = true;
 
       setTimeout(function() { drawScrollHint = true;}, 1000);
     }

@@ -1,10 +1,10 @@
 class Dualmodule
 {
-  constructor(ID, positionY, triggerPoint, fadeIn, fadeOut, xrfade1, xrfade2, startSide, music_A, music_B)
+  constructor(ID, positionY, triggerPoint, fadeIn, fadeOut, xrfade1, xrfade2, startSide, music_A, music_B, leftHeader, leftSub, rightHeader, rightSub)
   {
     this.ID = ID;
-    this.left = new Module(ID, "A", -0.25, 0, 0.5, xrfade1, positionY, music_A);
-    this.right = new Module(ID, "B", 0.25, 0, 0.5, xrfade2, positionY, music_B);
+    this.left = new Module(ID, "A", -0.25, 0, 0.5, xrfade1, positionY, music_A, leftHeader, leftSub);
+    this.right = new Module(ID, "B", 0.25, 0, 0.5, xrfade2, positionY, music_B, rightHeader, rightSub);
 
 
     if(startSide == 'A')
@@ -32,8 +32,8 @@ class Dualmodule
 
     this.gain = 1;
 
-    this.startSide = startSide;
-    this.side = startSide;
+    this.startSide = "off";
+    this.side = "none";
   }
 
   checkForClick()
@@ -94,8 +94,6 @@ class Dualmodule
       {
         this.right.start(false);
       }
-
-      this.isStarted = true;
   }
 
   startMusic()
@@ -111,7 +109,6 @@ class Dualmodule
       if(!this.isStarted && VIEWPOSITION >= this.triggerPoint)
       {
         this.isStarted = true;
-        this.startModule();
       }
 
       this.isActive = true;
@@ -124,7 +121,7 @@ class Dualmodule
     else
     {
       this.isActive = false;
-      this.isStarted = false;
+      //this.isStarted = false;
       this.left.deactivate();
       this.right.deactivate();
     }

@@ -13,11 +13,16 @@ let startButtonHeight = 0.7;
   Soundfiles
 */
 
-let numSoundfiles = 4;
+let numSoundfiles = 3;
 let numSoundfilesLoaded = 0;
 
 
 
+/*
+  TEXTS FOR WEBGL
+*/
+
+let _loadingText;
 
 /*
   -----------------------------------------------------------
@@ -39,13 +44,33 @@ function setup() {
   else
     canvas = createCanvas(windowWidth, windowHeight, WEBGL);
 
- setupPageElements();
  loadStartScreen();
  setupStartButton();
  loadModules();
-
+ setupRestartBtn();
  textFont(font);
  imageMode(CENTER);
+ loadTexts();
+ let nav = document.getElementById('nav');
+
+ if(isMobile)
+  {
+    nav.style.width = "100%";
+    nav.style.marginLeft = "0%";
+  }
+ 
+}
+
+
+function loadTexts()
+{
+  _loadingText = createGraphics(width, height);
+  _loadingText.textFont('Courier New');
+  _loadingText.textAlign(CENTER);
+  _loadingText.textSize(50);
+  _loadingText.fill(255);
+  _loadingText.noStroke();
+  _loadingText.text('Loading...', width * 0.5, height * 0.5);
 }
 
 /*
@@ -66,18 +91,19 @@ function loadStartScreen()
 
 function resizeStartScreen()
 {
+  startImage_copy = startImage.get();
+
   if(!isMobile)
   {
-    startImage_copy = startImage.get();
     startImage_copy.resize(width, height);
   }
 
   else
   {
     if(deviceOrientation == "portrait")
-      startImage.resize(0, height);
+      startImage_copy.resize(width * 2, height);
     else
-      startImage.resize(0, height);
+      startImage_copy.resize(width * 2, height);
   }
    
     startScreenReady = true;
@@ -99,7 +125,7 @@ function setupStartButton()
 
   if(!isMobile)
   {
-    startButton.position(width * 0.5 - (startWidth / 2), height * 0.85 - (startWidth / 2));
+    startButton.position(width * 0.515 - (startWidth / 2), height * 0.9 - (startWidth / 2));
   }
 
   else
@@ -164,8 +190,10 @@ function loadedSound()
 
   if(numSoundfilesLoaded == numSoundfiles)
   {
-    startButton.show();
-    readyToStart = true;
+    setTimeout(function() { 
+      startButton.show();
+      readyToStart = true;
+    }, 1500);
   }  
 
 }
@@ -188,8 +216,8 @@ function draw()
 {
   background(0);
   fill(255);
-  //console.log(VIEWPOSITION);
   // LANDING PAGE
+  
   if(currentState == STATES.startscreen)
   {
     drawStartScreen(startScreenOffset);
@@ -217,6 +245,13 @@ function draw()
     {
       imageMode(CENTER);
       //image(scrollHint, 0, height * 0.4);
+
+      push();
+      noStroke();
+      texture(scrollHint);
+      translate(0, height * 0.4);
+      plane(scrollHint.width, scrollHint.height);
+      pop();
     }
   }
 
@@ -239,10 +274,10 @@ function draw()
     grundrauschen.update();
 
     updateStoryModules();
-
-    
-    //image(nadel, 0, 0, width, nadel.height * 0.35);
+ 
   }
+ 
+  updatePlaybar();    
 }
 
 
@@ -259,35 +294,24 @@ function updateStoryModules()
 function drawStartScreen(offsetY)
 {
   // start screen loading, draw Text for user
+
   if(!startScreenReady)
   {
-    fill(255);
     noStroke();
-    textAlign(CENTER);
-    text("LOADING...", 0, 0);
+    texture(_loadingText);
+    plane(width * 0.25, height * 0.25);
+    
   }
 
   else
   {
-    push();
-    noStroke();
     translate(0, - (height * offsetY));
     texture(startImage_copy);
-    plane(startImage_copy.width, startImage_copy.height);
-    pop();
 
-    //image(startImage_copy, 0 , - (height * offsetY));
-
-    // still loading audio files, progress bar
-    if(!readyToStart)
-    {
-        noFill();
-        strokeWeight(8);
-        stroke(0,255,0);
-
-        progress = mapToRange(numSoundfilesLoaded, 0, numSoundfiles, 0, TWO_PI);
-        arc(0, height * 0.85, width * 0.07, width * 0.07, 0, progress);
-    }
+    if(isMobile)
+      plane(width * 2, height);
+    else
+      plane(width, height);
   }
 }
 
@@ -381,7 +405,10 @@ function switchState(newState)
   }
 
   else if(currentState == STATES.story)
+  {
     isScrollingAllowed = true;
+  }
+    
 }
 
 
@@ -394,7 +421,7 @@ function  changeViewPosition(deltaMovement)
 {
   if(isRunning)
   {
-    if(currentState == STATES.intro && moduleIntro.isEnding && deltaMovement > 0) // at end of intro, if user scrolls down switch into story mode
+    if(currentState == STATES.intro && moduleIntro.storyEnding && deltaMovement > 0) // at end of intro, if user scrolls down switch into story mode
       switchState(STATES.transition);
 
     if(isScrollingAllowed)
@@ -446,21 +473,29 @@ function windowResized()
     }
   }
 
-  resizeContent();
+  //resizeContent();
 }
 
 function resizeContent()
 {
   //console.log("SCALE", width, height,"window", windowWidth, windowHeight, "display", displayWidth, displayHeight);
   var mutePos = deviceOrientation == "portrait" ? width * 0.95 : width * 0.95;
-  muteButton.position(mutePos, height * 0.01);
+
+  if(muteButton)
+    muteButton.position(mutePos, height * 0.01);
 
   let startWidth; 
 
   if(!isMobile)
+  {
     startWidth = width * 0.1;
+  }
+    
   else
+  {
     startWidth = width * 0.25;
+  }
+    
 
   startButton.position(width * 0.5 - (startWidth / 2), height * startButtonHeight - (startWidth / 2));
 }
@@ -480,6 +515,7 @@ function mapToRange (number, inMin, inMax, outMin, outMax) {
 }
 
 function keyPressed() {
+  /*
   if (keyCode === LEFT_ARROW) {
     modules[0].left.story.seek(140);
     modules[0].right.story.seek(120);
@@ -489,6 +525,7 @@ function keyPressed() {
     moduleIntro.story.seek(59);
       switchState(STATES.intro);
   }
+  */
 }
 
 

@@ -1,6 +1,6 @@
 class Module
 {
-  constructor(id, side, x, y, radius, crossFadePoint, parentPos, musicModule)
+  constructor(id, side, x, y, radius, crossFadePoint, parentPos, musicModule, headerText, subText)
   {
     this.id = id;
     this.side = side; // 'A' or 'B'
@@ -11,10 +11,12 @@ class Module
     this.isStarted = false;
     this.isFading = false;
     this.storyEnding = false;
+    this.isActive = false;
     this.gain = 1;
     this.parentGain = 0;
     this.parentPos = parentPos;
-    
+    this.headerText = headerText;
+    this.subText = subText;
     this.fadeInObj;
     this.fadeOutObj;
 
@@ -26,7 +28,7 @@ class Module
     loop: false,
     volume: 0.0,
     onload: function() {
-      loadedSound();
+      //loadedSound();
     }
     });
 
@@ -36,17 +38,19 @@ class Module
       loop: true,
       volume: 0.0,
       onload: function() {
-        loadedSound();
+        //loadedSound();
       }
       });
 
     this.imageSRC = loadImage('assets/images/' + id + side + ".png", this.rescaleImage.bind(this));
     this.image;
 
-  
   }
 
-  
+  notifyPlaybar()
+  {
+    setCurrentModule(this, this.headerText, this.subText, false);
+  }
 
   stopFade()
   {
@@ -56,7 +60,7 @@ class Module
   fadeIn()
   {
     this.gain += 1 / frameRate();
-    
+
     if(this.gain >= 1)
       this.gain = 1.0;
     else
@@ -71,7 +75,8 @@ class Module
     if(this.gain <= 0)
     {
       this.gain = 0.0;
-      this.getCurrentSound().pause();
+      this.story.pause();
+      this.loop.pause();
     }
       
     else
@@ -99,6 +104,7 @@ class Module
     return false;
   }
 
+
   start(withFade)
   {
     let soundToStart = this.getCurrentSound();
@@ -115,16 +121,27 @@ class Module
       this.gain = 1;
 
     this.isStarted = true;
+    this.isActive = true;
+    
+    this.notifyPlaybar();
+  }
 
-  
+  restart()
+  {
+    this.storyEnding = false;
+    this.isStarted = true;
+    this.isActive = true;
+
+    this.loop.pause();
+    this.story.stop();
+    this.story.play();
   }
 
   pause()
   {
+    this.isActive = false;
     clearTimeout(this.fadeInObj);
     this.fadeOut();
-
-
   }
 
   stop()
@@ -168,9 +185,10 @@ class Module
       if(!this.loop.playing())
       {
         this.isFading = true;
+        this.loop.volume(0);
         this.loop.play();
         this.loop.fade(0, this.gain * this.parentGain, 1000);
-        setTimeout(this.stopFade.bind(this), 1010);
+        setTimeout(this.stopFade.bind(this), 1050);
       } 
     }
 
@@ -187,13 +205,12 @@ class Module
 
     else
     {
-      if(!this.storyEnding && !this.story.playing() && this.isStarted)
-        this.story.play();
+      if(this.isStarted && this.isActive)
+      {
+        if(!this.getCurrentSound().playing())
+          this.start(true);
+      }
 
-      if(this.storyEnding && !this.loop.playing()) 
-        this.loop.play();
-
-      //this.story.fade(this.story.volume(), this.gain * this.parentGain, 1000 / frameRate());
       this.story.volume(this.gain * this.parentGain);
 
       if(!this.isFading)
@@ -219,7 +236,7 @@ class Module
     
     push();
     noStroke();
-    tint(255, blend * 180 + 75);
+    tint(255, blend * 210 + 45);
     texture(this.image);
     translate(posX, posY);
     plane(this.image.width, this.image.height);
